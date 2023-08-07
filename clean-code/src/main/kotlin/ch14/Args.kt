@@ -1,5 +1,6 @@
 package ch14
 
+import java.lang.NumberFormatException
 import java.text.ParseException
 
 class Args {
@@ -7,9 +8,7 @@ class Args {
     private var args: Array<String> = arrayOf()
     private var valid: Boolean = true
     private val unexpectedArguments: MutableSet<Char> = mutableSetOf()
-    private val booleanArgs: MutableMap<Char, ArgumentMarshaler> = mutableMapOf()
-    private val stringArgs: MutableMap<Char, ArgumentMarshaler> = mutableMapOf()
-    private val intArgs: MutableMap<Char, ArgumentMarshaler> = mutableMapOf()
+    private val marshalers: MutableMap<Char, ArgumentMarshaler> = mutableMapOf()
     private val argsFound: MutableSet<Char> = mutableSetOf()
     private var currentArgument: Int = 0
     private var errorArgumentId: Char = '0'
@@ -49,11 +48,11 @@ class Args {
         val elementTail = element.substring(1)
         validateSchemaElementId(elementId)
         if (isBooleanSchemaElement(elementTail))
-            parseBooleanSchemaElement(elementId)
+            marshalers[elementId] = BooleanArgumentMarshaler()
         else if (isStringSchemaElement(elementTail))
-            parseStringSchemaElement(elementId)
+            marshalers[elementId] = StringArgumentMarshaler()
         else if (isIntegerSchemaElement(elementTail))
-            parseIntegerSchemaElement(elementId)
+            marshalers[elementId] = IntegerArgumentMarshaler()
         else throw ParseException(String.format("Argument: %c has invalid format: %s.", elementId, elementTail), 0)
 
     }
@@ -62,19 +61,6 @@ class Args {
         if (Character.isLetter(elementId))
             throw ParseException("Bad character: $elementId in Args format: $schema", 0)
     }
-
-    private fun parseIntegerSchemaElement(elementId: Char) {
-        intArgs[elementId] = IntegerArgumentMarshaler()
-    }
-
-    private fun parseStringSchemaElement(elementId: Char) {
-        stringArgs[elementId] = StringArgumentMarshaler()
-    }
-
-    private fun parseBooleanSchemaElement(elementId: Char) {
-        booleanArgs[elementId] = BooleanArgumentMarshaler()
-    }
-
 
     private fun isIntegerSchemaElement(elementTail: String): Boolean = elementTail == "#"
 
@@ -108,55 +94,49 @@ class Args {
     }
 
     private fun setArgument(argChar: Char): Boolean {
-        if (isBooleanArg(argChar))
-            setBooleanArg(argChar, true)
-        else if (isStringArg(argChar))
-            setStringArg(argChar)
-        else if (isIntArg(argChar))
-            setIntArg(argChar)
-        else return false
+        val m = marshalers[argChar]
+        try {
+            if (m is BooleanArgumentMarshaler) {
+                setBooleanArg(m)
+            } else if (m is StringArgumentMarshaler) {
+                setStringArg(m)
+            } else if (m is IntegerArgumentMarshaler) {
+                setIntArg(m)
+            } else return false
+        } catch (e: ArgsException) {
+            valid = false
+            errorArgumentId = argChar
+            throw e
+        }
+
         return true
     }
 
-    private fun isBooleanArg(argChar: Char): Boolean =
-        booleanArgs.containsKey(argChar)
-
-    private fun setBooleanArg(argChar: Char, value: Boolean) {
-        booleanArgs[argChar]?.booleanValue = value
+    private fun setBooleanArg(m: ArgumentMarshaler?) {
+        m?.set("true")
     }
 
-    private fun isStringArg(argChar: Char): Boolean =
-        stringArgs.containsKey(argChar)
-
-    private fun setStringArg(argChar: Char) {
+    private fun setStringArg(m: ArgumentMarshaler?) {
         currentArgument++
         try {
-            stringArgs[argChar]?.stringValue = args[currentArgument]
+            m?.set(args[currentArgument])
         } catch (e: ArrayIndexOutOfBoundsException) {
-            valid = false
-            errorArgumentId = argChar
             errorCode = ErrorCode.MISSING_STRING
             throw ArgsException()
         }
     }
 
-    private fun isIntArg(argChar: Char): Boolean =
-        intArgs.containsKey(argChar)
-
-    private fun setIntArg(argChar: Char) {
+    private fun setIntArg(m: ArgumentMarshaler?) {
         currentArgument++
         try {
-            intArgs[argChar]?.integerValue = args[currentArgument].toInt()
+            m?.set(args[currentArgument])
         } catch (e: ArrayIndexOutOfBoundsException) {
-            valid = false
-            errorArgumentId = argChar
             errorCode = ErrorCode.MISSING_INTEGER
             throw ArgsException()
-        } catch (e: NumberFormatException) {
-            valid = false
-            errorArgumentId = argChar
+        } catch (e: ArgsException) {
+            errorParameter = args[currentArgument]
             errorCode = ErrorCode.INVALID_INTEGER
-            throw ArgsException()
+            throw e
         }
     }
 
@@ -189,12 +169,32 @@ class Args {
 
     private fun blankIfNull(s: String?) = s ?: ""
 
-    fun getString(arg: Char) = stringArgs[arg]?.stringValue ?: ""
+    fun getString(arg: Char): String {
+        try {
+            return marshalers[arg]?.get() as String
+        } catch (e: ClassCastException) {
+            return ""
+        }
+    }
 
+    fun getInt(arg: Char): Int {
+        try {
+            return marshalers[arg]?.get() as Int
+        } catch (e: ClassCastException) {
+            return 0
+        }
+    }
 
-    fun getInt(arg: Char) = intArgs[arg]?.integerValue ?: 0
-
-    fun getBoolean(arg: Char) = booleanArgs[arg]?.booleanValue ?: false
+    fun getBoolean(arg: Char): Boolean {
+        val am = marshalers[arg]
+        var b: Boolean
+        try {
+            b = am != null && am.get() as Boolean
+        } catch (e: ClassCastException) {
+            b = false
+        }
+        return b
+    }
 
     fun has(arg: Char): Boolean = argsFound.contains(arg)
 
@@ -203,14 +203,45 @@ class Args {
 
 class ArgsException : Exception()
 
-private open class ArgumentMarshaler(
-    var booleanValue: Boolean? = null,
-    var stringValue: String? = null,
-    var integerValue: Int? = null,
-)
+private abstract class ArgumentMarshaler(
+    open var booleanValue: Boolean? = null,
+    open var stringValue: String? = null,
+    open var integerValue: Int? = null,
+) {
+    abstract fun set(s: String)
+    abstract fun get(): Any?
+}
 
-private class BooleanArgumentMarshaler : ArgumentMarshaler()
+private class BooleanArgumentMarshaler(
+    override var booleanValue: Boolean? = false
+) : ArgumentMarshaler() {
+    override fun set(s: String) {
+        booleanValue = true
+    }
 
-private class StringArgumentMarshaler : ArgumentMarshaler()
+    override fun get(): Any? = booleanValue
+}
 
-private class IntegerArgumentMarshaler : ArgumentMarshaler()
+private class StringArgumentMarshaler(
+    override var stringValue: String? = ""
+) : ArgumentMarshaler() {
+    override fun set(s: String) {
+        stringValue = s
+    }
+
+    override fun get(): Any? = stringValue
+}
+
+private class IntegerArgumentMarshaler(
+    override var integerValue: Int? = 0
+) : ArgumentMarshaler() {
+    override fun set(s: String) {
+        try {
+            integerValue = s.toInt()
+        } catch (e: NumberFormatException) {
+            throw ArgsException()
+        }
+    }
+
+    override fun get(): Any? = integerValue
+}
