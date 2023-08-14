@@ -1,5 +1,6 @@
 package item03.ch01
 
+import ch02.item03.ch01.Elvis
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

@@ -1,5 +1,6 @@
 package item08
 
+import ch02.item08.Room
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

@@ -1,4 +1,4 @@
-package item06.ex01
+package ch02.item06.ex01
 
 fun main() {
     val str: String = "bikini"

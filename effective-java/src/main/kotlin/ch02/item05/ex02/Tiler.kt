@@ -1,4 +1,4 @@
-package item05.ex02
+package ch02.item05.ex02
 
 import java.util.function.Supplier
 

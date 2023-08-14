@@ -1,4 +1,4 @@
-package item02.ex01
+package ch02.item02.ex01
 
 class NutritionFacts private constructor(
     private val _servingSize: Int,

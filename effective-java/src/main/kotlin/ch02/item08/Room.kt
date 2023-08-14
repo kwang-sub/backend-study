@@ -1,4 +1,4 @@
-package item08
+package ch02.item08
 
 import java.lang.ref.Cleaner
 

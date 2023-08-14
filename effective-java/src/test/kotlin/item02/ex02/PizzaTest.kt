@@ -1,5 +1,9 @@
 package item02.ex02
 
+import ch02.item02.ex02.Calzone
+import ch02.item02.ex02.NyPizza
+import ch02.item02.ex02.Size
+import ch02.item02.ex02.Topping
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 

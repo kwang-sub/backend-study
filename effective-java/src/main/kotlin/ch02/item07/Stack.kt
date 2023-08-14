@@ -1,4 +1,4 @@
-package item07
+package ch02.item07
 
 import java.util.*
 

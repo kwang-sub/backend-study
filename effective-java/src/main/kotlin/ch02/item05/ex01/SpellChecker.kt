@@ -1,4 +1,4 @@
-package item05.ex01
+package ch02.item05.ex01
 
 class SpellChecker(
     private val _dictionary: Lexicon

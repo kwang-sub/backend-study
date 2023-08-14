@@ -1,4 +1,4 @@
-package item02.ex02
+package ch02.item02.ex02
 
 import java.util.*
 
