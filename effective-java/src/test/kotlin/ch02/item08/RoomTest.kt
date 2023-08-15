@@ -1,4 +1,4 @@
-package item08
+package ch02.item08
 
 import ch02.item08.Room
 import org.assertj.core.api.Assertions.assertThat

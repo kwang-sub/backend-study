@@ -1,4 +1,4 @@
-package item03.ch01
+package ch02.item03.ch01
 
 import ch02.item03.ch01.Elvis
 import org.assertj.core.api.Assertions.assertThat

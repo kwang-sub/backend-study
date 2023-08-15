@@ -1,4 +1,4 @@
-package item02.ex01
+package ch02.item02.ex01
 
 import ch02.item02.ex01.NutritionFacts
 import org.assertj.core.api.Assertions.*
