@@ -4,7 +4,8 @@ class PhoneNumber private constructor(
     private val areaCode: Short,
     private val prefix: Short,
     private val lineNum: Short,
-) {
+): Cloneable {
+    private var hashCode: Int = 0
     constructor(areaCode: Int, prefix: Int, lineNum: Int): this(
         areaCode = rangeCheck(areaCode, 999, "지역코드"),
         prefix = rangeCheck(prefix, 999, "지역코드"),
@@ -18,10 +19,26 @@ class PhoneNumber private constructor(
     }
 
     override fun hashCode(): Int {
-        var result = areaCode.hashCode()
-        result = 31 * result + prefix.hashCode()
-        result = 31 * result + lineNum.hashCode()
+        var result = hashCode
+        if (result == 0) {
+            result = areaCode.hashCode()
+            result = 31 * result + prefix.hashCode()
+            result = 31 * result + lineNum.hashCode()
+            hashCode = result
+        }
         return result
+    }
+
+    override fun toString(): String {
+        return String.format("%03d-%03d-%04d",areaCode, prefix, lineNum)
+    }
+
+    override fun clone(): PhoneNumber {
+        try {
+            return super.clone() as PhoneNumber
+        } catch (e: CloneNotSupportedException) {
+            throw AssertionError()
+        }
     }
 
     companion object {
