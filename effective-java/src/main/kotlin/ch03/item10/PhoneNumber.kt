@@ -1,12 +1,15 @@
 package ch03.item10
 
+import kotlin.Comparator
+
 class PhoneNumber private constructor(
     private val areaCode: Short,
     private val prefix: Short,
     private val lineNum: Short,
-): Cloneable {
+) : Cloneable, Comparable<PhoneNumber> {
     private var hashCode: Int = 0
-    constructor(areaCode: Int, prefix: Int, lineNum: Int): this(
+
+    constructor(areaCode: Int, prefix: Int, lineNum: Int) : this(
         areaCode = rangeCheck(areaCode, 999, "지역코드"),
         prefix = rangeCheck(prefix, 999, "지역코드"),
         lineNum = rangeCheck(lineNum, 999, "지역코드"),
@@ -30,7 +33,7 @@ class PhoneNumber private constructor(
     }
 
     override fun toString(): String {
-        return String.format("%03d-%03d-%04d",areaCode, prefix, lineNum)
+        return String.format("%03d-%03d-%04d", areaCode, prefix, lineNum)
     }
 
     override fun clone(): PhoneNumber {
@@ -41,11 +44,19 @@ class PhoneNumber private constructor(
         }
     }
 
+    override fun compareTo(other: PhoneNumber): Int {
+        return COMPARATOR.compare(this, other)
+    }
+
     companion object {
-        fun rangeCheck(value : Int, max: Int, arg: String): Short {
+        fun rangeCheck(value: Int, max: Int, arg: String): Short {
             if (value !in 0..max) throw IllegalArgumentException("$arg: $value")
             return value.toShort()
         }
-    }
 
+        private val COMPARATOR: Comparator<PhoneNumber> = Comparator
+            .comparingInt<PhoneNumber> {it.areaCode.toInt()}
+            .thenComparingInt {it.prefix.toInt()}
+            .thenComparingInt {it.lineNum.toInt()}
+    }
 }
