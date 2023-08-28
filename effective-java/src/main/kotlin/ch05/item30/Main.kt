@@ -12,3 +12,11 @@ fun main() {
 }
 
 
+@SafeVarargs
+fun <T> flatten(vararg lists: MutableList<out T>): MutableList<T> {
+    val result = mutableListOf<T>()
+    for (list in lists) {
+        result.addAll(list)
+    }
+    return result
+}
