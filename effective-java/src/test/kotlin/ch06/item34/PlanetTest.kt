@@ -13,7 +13,6 @@ class PlanetTest {
         for (p: Planet in Planet.entries) {
             println("${p}에서의 무게는 ${p.surfaceWeight(mass)}이다")
         }
-
         // then
     }
 }
