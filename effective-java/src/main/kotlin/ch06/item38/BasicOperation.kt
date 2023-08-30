@@ -32,10 +32,10 @@ enum class BasicOperation(
 fun main() {
     val x = 1.0
     val y = 3.0
-    extracted(BasicOperation::class.java,x, y)
+    extracted(BasicOperation::class.java, x, y)
 }
 
-private fun <T :  Operation> extracted(clazz: Class<T> ,x: Double, y: Double) {
+private fun <T : Operation> extracted(clazz: Class<T>, x: Double, y: Double) {
     if (!clazz.isEnum) return
     for (op: Operation in clazz.enumConstants) {
         println("$x $op $y  ${op.apply(x, y)}")
