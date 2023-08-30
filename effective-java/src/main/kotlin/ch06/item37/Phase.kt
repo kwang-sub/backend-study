@@ -3,14 +3,14 @@ package ch06.item37
 import java.util.EnumMap
 
 enum class Phase {
-    SOLID, LIQUID, GAS;
+    SOLID, LIQUID, GAS, PLASMA;
 
     enum class Transition(
         val from: Phase,
         val to: Phase,
     ) {
         MELT(SOLID, LIQUID), FREEZE(LIQUID, SOLID), BOIL(LIQUID, GAS), CONDENSE(GAS, LIQUID),
-        SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID);
+        SUBLIME(SOLID, GAS), DEPOSIT(GAS, SOLID), IONIZE(GAS, PLASMA), DEIONIZE(PLASMA, GAS);
 
         companion object {
             private val m = EnumMap(entries.groupBy { it.from }
@@ -29,7 +29,6 @@ enum class Phase {
             )
 
             fun from(from: Phase, to: Phase): Transition {
-                println(m)
                 return m[from]?.get(to) ?: throw IndexOutOfBoundsException()
             }
         }
@@ -38,4 +37,5 @@ enum class Phase {
 
 fun main() {
     println(Phase.Transition.from(Phase.SOLID, Phase.LIQUID))
+    println(Phase.Transition.from(Phase.GAS, Phase.PLASMA))
 }
