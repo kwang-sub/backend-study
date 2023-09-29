@@ -3,7 +3,7 @@ package ch07.item45
 import java.util.*
 
 fun main() {
-    val args = arrayOf("staple", "afgadfbqtreh")
+    val args = arrayOf("staple", "stapel")
 
     val groups = hashMapOf<String, MutableSet<String>>()
 
